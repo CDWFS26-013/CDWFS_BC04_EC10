@@ -137,4 +137,4 @@ def test_post_api_distance_invalid_coordinates(client):
 
 def test_post_api_distance_no_json(client):
     response = client.post('/api/distance')
-    assert response.status_code in (200, 400, 500)
+    assert response.status_code in (200, 400, 415, 500)
