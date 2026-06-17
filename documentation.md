@@ -113,6 +113,19 @@ pytest --cov=app --cov-report=html
 
 ---
 
+## Tester l'API avec api_tests.http
+
+1. Installer l'extension **REST Client** dans VS Code (`Ctrl+Shift+X` → chercher "REST Client" par Huachao Mao)
+2. Lancer l'application Flask :
+```bash
+flask --app app run
+```
+3. Ouvrir le fichier `api_tests.http`
+4. Cliquer sur **Send Request** au-dessus de chaque requête pour l'exécuter
+5. Le résultat s'affiche dans un panneau à droite (statut HTTP, headers, body JSON)
+
+---
+
 ## Analyse statique (dette technique)
 
 ```bash
