@@ -34,7 +34,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Installer les dépendances
-pip install flask pytest pytest-cov flake8
+pip install flask pytest pytest-cov flake8 pylint
 ```
 
 ---
@@ -56,6 +56,7 @@ L'application est accessible à l'adresse : http://127.0.0.1:5000
 3. Saisir les coordonnées du point B dans le second champ (format : `x,y` — exemple : `1,6`)
 4. Cliquer sur **Soumettre**
 5. La distance calculée s'affiche sur la page
+6. En cas de coordonnées invalides (texte non numérique, champ vide), un message d'erreur s'affiche sans faire planter le serveur
 
 ---
 
