@@ -35,54 +35,76 @@ Résultat : aucun test découvert, couverture = 0 %.
 
 ## 3. Quelle est la dette technique après vos modifications ? Qu'en dites-vous ?
 
-Après modifications, la dette technique a été fortement réduite :
+Après modifications, la dette technique a été fortement réduite. Score mesuré avec pylint :
 
-- Variables renommées conformément à PEP8 (`end_point`, `start_point`)
+**Score pylint : 2.50/10 → 6.97/10 (progression de +4.47)**
+
+Corrections appliquées :
+- Variables renommées conformément à PEP8 (`eNd` → `end_point`, `EndPoint` → `end_point`)
 - Code mort (`print` après `return`) supprimé
 - Première assignation inutile de `startPoint` supprimée
-- Duplication du dictionnaire résultat éliminée (construction une seule fois)
-- Gestion des erreurs ajoutée (`try/except`) sur les entrées utilisateur
-- Méthodes HTTP corrigées sur la route `/api/distance` (POST uniquement)
+- Duplication du dictionnaire résultat éliminée (une seule construction, directement ajoutée à `distances`)
+- Gestion des erreurs ajoutée (`try/except`) sur les entrées utilisateur (routes HTML et API)
+- Méthodes HTTP corrigées sur `/api/distance` (POST uniquement)
+- `map(lambda ...)` remplacés par des compréhensions de liste (plus idiomatique Python)
+- `list()` remplacé par `[]`
 
-Score pylint après modifications : **~8.5/10**
+Dette résiduelle identifiée par pylint (avertissements non bloquants) :
+- Docstrings manquantes sur les fonctions et le module
+- Ordre des imports (stdlib avant third-party)
+- Retours incohérents dans `html_calculate` (branche GET sans `else` explicite)
 
-La dette résiduelle concerne principalement l'architecture : le stockage des distances dans une liste en mémoire (`distances = list()`) signifie que toutes les données sont perdues au redémarrage du serveur. Une base de données serait nécessaire pour un usage en production.
+La dette résiduelle la plus structurelle reste l'architecture : le stockage en mémoire (`distances = []`) perd toutes les données au redémarrage. Une base de données serait nécessaire en production.
 
 ---
 
 ## 4. Quelle est la couverture en fin de projet après vos modifications ? Qu'en dites-vous ?
 
-Après ajout des tests, la couverture atteint **~90 %** des lignes de code.
+Après ajout des tests, la couverture mesurée avec pytest-cov est de **100 %**.
 
-Les tests couvrent :
-- Route GET `/` : affichage du formulaire vide
-- Route POST `/` avec des coordonnées valides (ex: `2,5` et `1,6`)
-- Route POST `/` avec des coordonnées invalides (texte non numérique)
-- Route GET `/api/distances` : récupération de la liste
-- Route POST `/api/distance` avec un JSON valide
-- Route POST `/api/distance` avec un JSON invalide ou manquant
+```
+Name     Stmts   Miss  Cover   Missing
+--------------------------------------
+app.py      37      0   100%
+--------------------------------------
+TOTAL       37      0   100%
+```
 
 Commande de mesure :
 ```bash
-pytest --cov=app --cov-report=term-missing
+pytest test_app.py --cov=app --cov-report=term-missing
 ```
 
-Les ~10 % restants correspondent à des branches d'erreur très peu probables. Une couverture de 90 % est un résultat satisfaisant pour ce type d'application.
+Les 21 tests couvrent l'intégralité des 37 lignes exécutables de `app.py` :
+- Route GET `/` : affichage du formulaire vide
+- Route POST `/` avec des coordonnées valides (ex: `2,5` et `1,6`)
+- Route POST `/` avec des coordonnées invalides (texte non numérique)
+- Route GET `/api` et GET `/api/distances`
+- Route POST `/api/distance` avec un JSON valide, invalide, manquant ou sans corps
+
+Une couverture de 100 % garantit qu'aucune ligne de code n'est orpheline de test. C'est un résultat idéal pour cette taille de projet.
 
 ---
 
 ## 5. État des lieux — Écart entre les attentes et l'état actuel
 
-| Attente du contexte | État initial du projet | Écart |
-|---|---|---|
-| Application de calcul de distance fonctionnelle | Fonctionnelle mais fragile (pas de gestion d'erreurs) | Partiel |
-| Tests adaptés à l'interaction utilisateur | **0 test** | **Critique** |
-| Couverture exhaustive | **0 %** | **Critique** |
-| API REST correcte | Partiellement conforme (méthodes HTTP incorrectes, pas de sauvegarde des résultats via API) | Moyen |
-| Code de qualité / lisible | Multiples violations PEP8, code mort, duplication | Fort |
-| Documentation technique | **Absente** | **Critique** |
+### État initial vs. état final
 
-L'écart le plus grave est l'absence totale de tests et de documentation. L'application est fonctionnelle dans le cas nominal, mais un seul appel avec des données incorrectes provoque une erreur 500 non gérée.
+| Attente du contexte | État initial | Écart initial | État après modifications |
+|---|---|---|---|
+| Application de calcul de distance fonctionnelle | Fonctionnelle mais fragile (pas de gestion d'erreurs) | Partiel | **Résolue** — `try/except` ajouté sur toutes les entrées utilisateur |
+| Tests adaptés à l'interaction utilisateur | **0 test** | **Critique** | **Résolue** — 21 tests couvrant toutes les routes |
+| Couverture exhaustive | **0 %** | **Critique** | **Résolue** — couverture à **100 %** |
+| API REST correcte | Partiellement conforme (méthodes HTTP incorrectes) | Moyen | **Améliorée** — `/api/distance` restreinte à POST uniquement |
+| Code de qualité / lisible | Multiples violations PEP8, code mort, duplication | Fort | **Améliorée** — pylint 2.50/10 → 6.97/10 |
+| Documentation technique | **Absente** | **Critique** | **Résolue** — `documentation.md` et `openapi.yaml` créés |
+
+### Écarts résiduels
+
+Les attentes du contexte sont désormais majoritairement couvertes. Il reste deux points d'amélioration non bloquants :
+
+- **Score pylint < 10/10** : des docstrings sont manquantes sur les fonctions et le module, et l'ordre des imports ne respecte pas strictement PEP8 (stdlib avant third-party). Ces points n'affectent pas le fonctionnement mais dégradent la lisibilité.
+- **Persistance des données** : les distances calculées sont stockées en mémoire (`distances = []`) et perdues au redémarrage. Pour un usage en production, une base de données serait nécessaire.
 
 ---
 
