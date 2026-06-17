@@ -1,0 +1,129 @@
+
+```yaml
+openapi: 3.0.3
+info:
+  title: Distance Calculator API
+  description: API de calcul de distance euclidienne entre deux points d'un plan 2D, basée sur le théorème de Pythagore.
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:5000
+    description: Serveur de développement local
+
+paths:
+  /api:
+    get:
+      summary: Point d'entrée de l'API
+      description: Retourne un objet vide. Sert de point de contrôle pour vérifier que l'API est disponible.
+      responses:
+        '200':
+          description: API disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {}
+
+  /api/distances:
+    get:
+      summary: Lister tous les calculs effectués
+      description: Retourne la liste de toutes les distances calculées depuis le démarrage du serveur. Les données sont stockées en mémoire et perdues au redémarrage.
+      responses:
+        '200':
+          description: Liste des calculs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistanceResult'
+              example:
+                - requested_at: "2026-06-17T10:00:00.000000"
+                  result_distance: 1.4142135623730951
+                  start_point: [2, 5]
+                  end_point: [1, 6]
+
+  /api/distance:
+    post:
+      summary: Calculer une distance entre deux points
+      description: Calcule la distance euclidienne entre deux points A et B fournis au format "x,y".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistanceRequest'
+            example:
+              start_point: "2,5"
+              end_point: "1,6"
+      responses:
+        '200':
+          description: Distance calculée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistanceResult'
+              example:
+                requested_at: "2026-06-17T10:00:00.000000"
+                result_distance: 1.4142135623730951
+                start_point: [2, 5]
+                end_point: [1, 6]
+        '400':
+          description: Requête invalide (coordonnées manquantes ou non numériques)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur serveur interne
+
+components:
+  schemas:
+    DistanceRequest:
+      type: object
+      required:
+        - start_point
+        - end_point
+      properties:
+        start_point:
+          type: string
+          description: Coordonnées du point A au format "x,y"
+          example: "2,5"
+        end_point:
+          type: string
+          description: Coordonnées du point B au format "x,y"
+          example: "1,6"
+
+    DistanceResult:
+      type: object
+      properties:
+        requested_at:
+          type: string
+          format: date-time
+          description: Horodatage du calcul
+          example: "2026-06-17T10:00:00.000000"
+        result_distance:
+          type: number
+          format: float
+          description: Distance euclidienne calculée
+          example: 1.4142135623730951
+        start_point:
+          type: array
+          items:
+            type: integer
+          description: Coordonnées [x, y] du point de départ
+          example: [2, 5]
+        end_point:
+          type: array
+          items:
+            type: integer
+          description: Coordonnées [x, y] du point d'arrivée
+          example: [1, 6]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur
+          example: "Coordonnées invalides"
